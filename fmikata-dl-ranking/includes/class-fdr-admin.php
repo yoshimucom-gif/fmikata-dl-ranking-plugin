@@ -124,8 +124,7 @@ class FDR_Admin {
         $payload = array(
             'nonce'   => wp_create_nonce('fdr_ajax'),
             'ajaxurl' => admin_url('admin-ajax.php'),
-            'color'   => $opt['accent_color'],
-            'tplHtml' => $opt['item_tpl_html'],
+            'tplList' => $opt['item_tpl_list'],
             'tplText' => $opt['item_tpl_text'],
             'intro'   => $opt['mail_intro'],
             'outro'   => $opt['mail_outro'],
@@ -403,12 +402,8 @@ class FDR_Admin {
                     </tr>
                 </table>
 
-                <h2>メール本文</h2>
+                <h2>出力</h2>
                 <table class="form-table" role="presentation">
-                    <tr>
-                        <th scope="row"><label for="accent_color">番号の色</label></th>
-                        <td><input type="text" id="accent_color" name="accent_color" value="<?php echo esc_attr($opt['accent_color']); ?>" class="regular-text code" placeholder="#ff8c21"></td>
-                    </tr>
                     <tr>
                         <th scope="row"><label for="heading_service">① の見出し</label></th>
                         <td><input type="text" id="heading_service" name="heading_service" value="<?php echo esc_attr($opt['heading_service']); ?>" class="large-text"></td>
@@ -418,21 +413,22 @@ class FDR_Admin {
                         <td><input type="text" id="heading_knowhow" name="heading_knowhow" value="<?php echo esc_attr($opt['heading_knowhow']); ?>" class="large-text"></td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="mail_intro">冒頭文</label></th>
+                        <th scope="row"><label for="item_tpl_list">一覧の1行</label></th>
+                        <td><textarea id="item_tpl_list" name="item_tpl_list" rows="2" class="large-text code"><?php echo esc_textarea($opt['item_tpl_list']); ?></textarea>
+                            <p class="description">名前とURLだけの一覧。既定は <code>{n}．{title}（{url}）</code> で、<code>1．資料名（https://…）</code> の形になります。</p></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="item_tpl_text">メール本文の1件分</label></th>
+                        <td><textarea id="item_tpl_text" name="item_tpl_text" rows="5" class="large-text code"><?php echo esc_textarea($opt['item_tpl_text']); ?></textarea>
+                            <p class="description">使える差し込み: <code>{n}</code> 番号（1, 2, 3…） / <code>{no}</code> 丸番号（❶❷❸…） / <code>{title}</code> 資料名 / <code>{comment}</code> 一言 / <code>{url}</code> URL</p></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="mail_intro">メール本文の冒頭文</label></th>
                         <td><textarea id="mail_intro" name="mail_intro" rows="6" class="large-text"><?php echo esc_textarea($opt['mail_intro']); ?></textarea></td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="mail_outro">末尾文</label></th>
+                        <th scope="row"><label for="mail_outro">メール本文の末尾文</label></th>
                         <td><textarea id="mail_outro" name="mail_outro" rows="4" class="large-text"><?php echo esc_textarea($opt['mail_outro']); ?></textarea></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="item_tpl_html">1件分のHTML</label></th>
-                        <td><textarea id="item_tpl_html" name="item_tpl_html" rows="6" class="large-text code"><?php echo esc_textarea($opt['item_tpl_html']); ?></textarea>
-                            <p class="description">使える差し込み: <code>{no}</code> 番号 / <code>{title}</code> 資料名 / <code>{comment}</code> 一言 / <code>{url}</code> URL / <code>{color}</code> 番号の色</p></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="item_tpl_text">1件分のテキスト</label></th>
-                        <td><textarea id="item_tpl_text" name="item_tpl_text" rows="5" class="large-text code"><?php echo esc_textarea($opt['item_tpl_text']); ?></textarea></td>
                     </tr>
                 </table>
 

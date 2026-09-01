@@ -25,7 +25,7 @@
     }
 
     function fill(tpl, vals) {
-        return String(tpl).replace(/\{(no|title|comment|url|color)\}/g, function (m, k) {
+        return String(tpl).replace(/\{(no|n|title|comment|url)\}/g, function (m, k) {
             return vals[k] !== undefined ? vals[k] : m;
         });
     }
@@ -40,14 +40,15 @@
         return block.items.filter(function (it) { return !it.picked; });
     }
 
-    function bodyHtml(block) {
+    /** 名前とURLだけの一覧。そのままどこにでも貼れる形 */
+    function bodyList(block) {
         return pickedOf(block).map(function (it, i) {
-            return fill(DATA.tplHtml, {
-                no: esc(numGlyph(i)),
-                title: esc(it.title),
-                comment: esc(it.comment),
-                url: esc(it.url),
-                color: esc(DATA.color)
+            return fill(DATA.tplList, {
+                no: numGlyph(i),
+                n: String(i + 1),
+                title: it.title,
+                comment: it.comment,
+                url: it.url
             });
         }).join('\n');
     }
@@ -56,10 +57,10 @@
         return pickedOf(block).map(function (it, i) {
             return fill(DATA.tplText, {
                 no: numGlyph(i),
+                n: String(i + 1),
                 title: it.title,
                 comment: it.comment,
-                url: it.url,
-                color: DATA.color
+                url: it.url
             });
         }).join('\n');
     }
@@ -159,7 +160,7 @@
     }
 
     function preview($block, block) {
-        $block.find('.fdr-out__html').val(bodyHtml(block));
+        $block.find('.fdr-out__list').val(bodyList(block));
         $block.find('.fdr-out__text').val(bodyText(block));
         buildCombined();
     }
@@ -187,15 +188,15 @@
                 '</div>' +
                 '<div class="fdr-out">' +
                     '<div class="fdr-out__row">' +
-                        '<h3>この見出しの本文</h3>' +
+                        '<h3>コピーする</h3>' +
                         '<button type="button" class="button fdr-save">選定内容を保存</button>' +
                         '<span class="fdr-saved" aria-live="polite"></span>' +
                     '</div>' +
                     '<div class="fdr-out__pair">' +
-                        '<div><label>HTML</label><textarea class="fdr-out__html" rows="10" readonly></textarea>' +
-                            '<button type="button" class="button fdr-copy" data-target="html">HTMLをコピー</button></div>' +
-                        '<div><label>テキスト</label><textarea class="fdr-out__text" rows="10" readonly></textarea>' +
-                            '<button type="button" class="button fdr-copy" data-target="text">テキストをコピー</button></div>' +
+                        '<div><label>一覧（名前とURL）</label><textarea class="fdr-out__list" rows="10" readonly></textarea>' +
+                            '<button type="button" class="button button-primary fdr-copy" data-target="list">一覧をコピー</button></div>' +
+                        '<div><label>メール本文（一言つき）</label><textarea class="fdr-out__text" rows="10" readonly></textarea>' +
+                            '<button type="button" class="button fdr-copy" data-target="text">メール本文をコピー</button></div>' +
                     '</div>' +
                 '</div>' +
             '</section>';
@@ -204,36 +205,32 @@
     function combinedMarkup() {
         return '' +
             '<section class="fdr-block fdr-block--all">' +
-                '<h2>1通にまとめた本文</h2>' +
-                '<p class="fdr-summary">冒頭文・見出し・末尾文は「設定」画面で変えられます。</p>' +
+                '<h2>①②をまとめて</h2>' +
+                '<p class="fdr-summary">見出し・冒頭文・末尾文は「設定」画面で変えられます。</p>' +
                 '<div class="fdr-out__pair">' +
-                    '<div><label>HTML</label><textarea class="fdr-all__html" rows="14" readonly></textarea>' +
-                        '<button type="button" class="button button-primary fdr-copy-all" data-target="html">HTMLをコピー</button></div>' +
-                    '<div><label>テキスト</label><textarea class="fdr-all__text" rows="14" readonly></textarea>' +
-                        '<button type="button" class="button fdr-copy-all" data-target="text">テキストをコピー</button></div>' +
+                    '<div><label>一覧（名前とURL）</label><textarea class="fdr-all__list" rows="14" readonly></textarea>' +
+                        '<button type="button" class="button button-primary fdr-copy-all" data-target="list">一覧をコピー</button></div>' +
+                    '<div><label>メール本文（一言つき）</label><textarea class="fdr-all__text" rows="14" readonly></textarea>' +
+                        '<button type="button" class="button fdr-copy-all" data-target="text">メール本文をコピー</button></div>' +
                 '</div>' +
             '</section>';
     }
 
-    function nl2br(s) {
-        return esc(s).replace(/\r\n|\r|\n/g, '<br />\n');
-    }
-
     function buildCombined() {
-        var html = [], text = [];
-        if (DATA.intro) { html.push(nl2br(DATA.intro) + '<br />\n'); text.push(DATA.intro + '\n'); }
+        var list = [], text = [];
+        if (DATA.intro) text.push(DATA.intro + '\n');
 
         DATA.blocks.forEach(function (block) {
             if (!pickedOf(block).length) return;
-            html.push('<strong>' + esc(block.heading) + '</strong><br />\n<br />');
+            list.push('■ ' + block.heading);
+            list.push(bodyList(block) + '\n');
             text.push('■ ' + block.heading + '\n');
-            html.push(bodyHtml(block));
             text.push(bodyText(block));
         });
 
-        if (DATA.outro) { html.push('<br />\n' + nl2br(DATA.outro)); text.push('\n' + DATA.outro); }
+        if (DATA.outro) text.push('\n' + DATA.outro);
 
-        $('.fdr-all__html').val(html.join('\n'));
+        $('.fdr-all__list').val(list.join('\n').replace(/\n+$/, ''));
         $('.fdr-all__text').val(text.join('\n'));
     }
 
@@ -351,12 +348,12 @@
         $app.on('click', '.fdr-copy', function () {
             var $btn = $(this);
             var $block = $btn.closest('.fdr-block');
-            copyFrom($block.find($btn.data('target') === 'html' ? '.fdr-out__html' : '.fdr-out__text'), $btn);
+            copyFrom($block.find($btn.data('target') === 'list' ? '.fdr-out__list' : '.fdr-out__text'), $btn);
         });
 
         $app.on('click', '.fdr-copy-all', function () {
             var $btn = $(this);
-            copyFrom($($btn.data('target') === 'html' ? '.fdr-all__html' : '.fdr-all__text'), $btn);
+            copyFrom($($btn.data('target') === 'list' ? '.fdr-all__list' : '.fdr-all__text'), $btn);
         });
 
         $app.on('click', '.fdr-save', function () {
