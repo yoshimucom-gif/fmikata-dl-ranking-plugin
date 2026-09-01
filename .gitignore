@@ -1,0 +1,9 @@
+# UI検証用に自動生成される（ui.py が作り直す）
+wptest-dlranking/uitest/
+
+# 申込データは顧客のメールアドレスを含むので絶対に入れない
+*.csv
+
+# Windows
+Thumbs.db
+desktop.ini

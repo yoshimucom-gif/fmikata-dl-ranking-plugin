@@ -1,0 +1,13 @@
+{
+  "name": "資料DLランキング（メルマガ生成）",
+  "version": "1.0.0",
+  "download_url": "https://raw.githubusercontent.com/yoshimucom-gif/fmikata-dl-ranking-plugin/main/fmikata-dl-ranking.zip",
+  "requires": "5.8",
+  "tested": "6.7",
+  "requires_php": "7.4",
+  "author": "ミカタ株式会社",
+  "homepage": "https://github.com/yoshimucom-gif/fmikata-dl-ranking-plugin",
+  "sections": {
+    "changelog": "1.0.0\n・最初のリリース\n・Flamingoの申込を「サービス一覧」「ノウハウ資料」のカテゴリ別に集計\n・候補15件から掲載10件を選び、ドラッグで並べ替え\n・メール本文（HTML／テキスト）を生成してコピー"
+  }
+}

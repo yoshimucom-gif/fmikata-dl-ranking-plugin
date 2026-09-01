@@ -1,0 +1,152 @@
+[
+    {
+        "id":  1171,
+        "slug":  "baibai",
+        "name":  "売買関連書式",
+        "parent":  1145
+    },
+    {
+        "id":  814,
+        "slug":  "review",
+        "name":  "レビュー記事",
+        "parent":  1
+    },
+    {
+        "id":  1146,
+        "slug":  "sales-template",
+        "name":  "営業トーク・メールテンプレート",
+        "parent":  235
+    },
+    {
+        "id":  1158,
+        "slug":  "marketing-tips",
+        "name":  "集客ノウハウ",
+        "parent":  234
+    },
+    {
+        "id":  1162,
+        "slug":  "lead-generation",
+        "name":  "集客（反響獲得）",
+        "parent":  218
+    },
+    {
+        "id":  218,
+        "slug":  "service",
+        "name":  "不動産会社向けサービス一覧",
+        "parent":  0
+    },
+    {
+        "id":  1172,
+        "slug":  "chintai",
+        "name":  "賃貸関連書式",
+        "parent":  1145
+    },
+    {
+        "id":  1324,
+        "slug":  "ranking",
+        "name":  "人気資料ランキング",
+        "parent":  0
+    },
+    {
+        "id":  1147,
+        "slug":  "marketing-template",
+        "name":  "集客用チラシテンプレート",
+        "parent":  235
+    },
+    {
+        "id":  1157,
+        "slug":  "sales-tips",
+        "name":  "営業・追客ノウハウ",
+        "parent":  234
+    },
+    {
+        "id":  1163,
+        "slug":  "follow-up-sales",
+        "name":  "反響対応・商談支援",
+        "parent":  218
+    },
+    {
+        "id":  641,
+        "slug":  "matome",
+        "name":  "おすすめ紹介記事",
+        "parent":  0
+    },
+    {
+        "id":  1173,
+        "slug":  "kanri",
+        "name":  "管理関連書式",
+        "parent":  1145
+    },
+    {
+        "id":  1151,
+        "slug":  "other-tools",
+        "name":  "その他のツール",
+        "parent":  235
+    },
+    {
+        "id":  1159,
+        "slug":  "dx-tips",
+        "name":  "業務効率化・DXノウハウ",
+        "parent":  234
+    },
+    {
+        "id":  1164,
+        "slug":  "appraisal-listing",
+        "name":  "査定・媒介獲得",
+        "parent":  218
+    },
+    {
+        "id":  234,
+        "slug":  "knowhow",
+        "name":  "不動産会社向けノウハウ資料",
+        "parent":  0
+    },
+    {
+        "id":  1168,
+        "slug":  "business-operations",
+        "name":  "業務基盤・運用改善",
+        "parent":  218
+    },
+    {
+        "id":  1160,
+        "slug":  "management-tips",
+        "name":  "経営・仕組み化ノウハウ",
+        "parent":  234
+    },
+    {
+        "id":  1167,
+        "slug":  "property-management",
+        "name":  "賃貸管理・入居者対応",
+        "parent":  218
+    },
+    {
+        "id":  235,
+        "slug":  "sales-operation-tools",
+        "name":  "営業・業務お役立ちツール",
+        "parent":  0
+    },
+    {
+        "id":  1145,
+        "slug":  "shoshiki-hinagata",
+        "name":  "不動産書式ひな形【無料】",
+        "parent":  0
+    },
+    {
+        "id":  1165,
+        "slug":  "property-check",
+        "name":  "広告・物確・物出し",
+        "parent":  218
+    },
+    {
+        "id":  1,
+        "slug":  "jirei",
+        "name":  "導入事例",
+        "parent":  0
+    },
+    {
+        "id":  1325,
+        "slug":  "news",
+        "name":  "お知らせ",
+        "parent":  0
+    }
+]
