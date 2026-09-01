@@ -365,7 +365,7 @@ class FDR_Admin {
                                 <option value="<?php echo esc_attr($v); ?>" <?php selected($opt['service_range'], $v); ?>><?php echo esc_html($l); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <p class="description">サービスは1ヶ月だと同数が並びやすいので、3ヶ月を既定にしています。</p></td>
+                        <p class="description">サービスは1ヶ月だと申込が少なく、同数が並びやすい傾向があります。順位が団子になるときは「直近3ヶ月」にすると差が出ます。</p></td>
                     </tr>
                     <tr>
                         <th scope="row">② ノウハウ本の既定期間</th>

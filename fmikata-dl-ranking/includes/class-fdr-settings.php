@@ -28,7 +28,7 @@ class FDR_Settings {
             'candidates'     => 15,   // 候補として出す件数
             'picks'          => 10,   // 掲載する件数
             'unique_email'   => 0,    // 1 なら同一メールアドレスの重複を除いて数える
-            'service_range'  => '3m', // ①の既定期間（母数が薄いので3ヶ月）
+            'service_range'  => 'prev1m', // ①の既定期間
             'knowhow_range'  => 'prev1m', // ②の既定期間
 
             // ── 除外

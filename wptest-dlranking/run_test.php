@@ -122,7 +122,11 @@ check('URL正規化: 末尾スラッシュ', FDR_Aggregator::norm_url('https://s
 check('URL正規化: www とクエリ', FDR_Aggregator::norm_url('http://www.store.f-mikata.jp/abc?x=1#y'), 'store.f-mikata.jp/abc');
 check('URL正規化: 空', FDR_Aggregator::norm_url(''), '');
 
-/* ---- 12. フィールド検出 ---- */
+/* ---- 12. 既定の集計期間 ---- */
+check('①②とも既定は先月', array(FDR_Settings::get('service_range'), FDR_Settings::get('knowhow_range')), array('prev1m', 'prev1m'));
+check('既定の期間キーが実在する', array_key_exists(FDR_Settings::get('service_range'), FDR_Aggregator::ranges()), true);
+
+/* ---- 13. フィールド検出 ---- */
 check('Flamingoのフィールド候補が拾える', in_array('_field_service', FDR_Aggregator::detect_fields(), true), true);
 
 echo "\n";
