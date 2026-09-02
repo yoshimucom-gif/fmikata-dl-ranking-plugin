@@ -1,0 +1,9 @@
+und-color:rgba(0, 0, 0, 0)" class="dbp-e-color"><span style="color:rgb(2 44 67)" class="dbp-e-microcopy is-style-owata">先月人気の資料TOP3</span></mark></span></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:dbp/article {"article":{"number":3,"layout":"list","design":"card","column":{"type":"column","width":200,"max":1,"min":1},"orderby":"post_date","order":"DESC","items":"thumb,tag","postType":"post","category":"218","postId":"24177,212307,210190,","categoryPosition":"body"}} /-->
+
+<strong><span style="font-size:1em" class="dbp-e-font-size">2026年7月<strong><span style="font-size:1em" class="dbp-e-font-size">人気</span></strong>サービス資料</span></strong></li>
+<!-- /w
+
+<!-- wp:dbp/slide-article {"article":{"number":10,"layout":"grid","design":"card","column":{"max":3,"min":1,"fix":true},"orderby":"date","order":"desc","items":"thumb","postType":"post","category":"","period":"day","postId":"24177,212307,210190,92973,729,24960,160508,141471,142691,181774"},"slider":{"number":12,"layout":"grid","design":"card","column":{"max":3,"min":1,"fix":true},"orderby":"date","order":"desc","items":"thumb","postType":"post","id":"","type":"slide","slides":[],"perPage":{"lg":5,"sm":2},"perMove":{"lg":1},"controller":{"position":"center","arrow":true,"pagination":false},"focus":false,"autoplay":false,"interval":2,"autoScroll":true}} /-->

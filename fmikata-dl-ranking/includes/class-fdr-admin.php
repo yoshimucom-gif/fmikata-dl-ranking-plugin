@@ -17,6 +17,8 @@ class FDR_Admin {
         add_action('admin_menu', array(__CLASS__, 'menu'));
         add_action('admin_enqueue_scripts', array(__CLASS__, 'assets'));
         add_action('wp_ajax_fdr_save_draft', array(__CLASS__, 'ajax_save_draft'));
+        add_action('wp_ajax_fdr_top_find', array(__CLASS__, 'ajax_top_find'));
+        add_action('wp_ajax_fdr_top_apply', array(__CLASS__, 'ajax_top_apply'));
     }
 
     public static function menu() {
@@ -109,6 +111,8 @@ class FDR_Admin {
                         return ($tally['groups'][$n] ?? '') === $group ? $tally['counts'][$n] : 0;
                     }, array_keys($tally['counts']))),
                     'kinds'    => count(array_filter($tally['groups'], function ($v) use ($group) { return $v === $group; })),
+                    // 見出しの「2026年7月」に入れる文字。集計期間の開始月をそのまま使う
+                    'month'    => sprintf('%d年%d月', (int)$from->format('Y'), (int)$from->format('n')),
                 );
 
                 // 診断は期間の広いほうを採用しておけば足りる
@@ -130,6 +134,7 @@ class FDR_Admin {
             'outro'   => $opt['mail_outro'],
             'picks'   => $picks,
             'blocks'  => array_values($blocks),
+            'top'     => self::top_payload($opt),
         );
         ?>
         <div class="wrap fdr-wrap">
@@ -202,6 +207,83 @@ class FDR_Admin {
             echo wp_json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
         ?></script>
         <?php
+    }
+
+    /* ===================================================================
+     * TOPへの反映
+     * =================================================================== */
+
+    /** 画面に渡す反映先の情報。未設定なら blocks は空で返す */
+    private static function top_payload($opt) {
+        $post_id = (int)$opt['top_post_id'];
+        $out = array(
+            'postId'     => $post_id,
+            'postTitle'  => '',
+            'editLink'   => '',
+            'monthLabel' => (int)$opt['top_month_label'],
+            'blocks'     => array(),
+        );
+        if (!$post_id || !get_post($post_id)) return $out;
+
+        $out['postTitle'] = get_the_title($post_id);
+        $edit = get_edit_post_link($post_id, 'raw');
+        $out['editLink'] = $edit ? $edit : '';
+
+        foreach (FDR_TopSync::scan($post_id) as $b) {
+            $out['blocks'][] = array(
+                'key'    => $b['key'],
+                'name'   => $b['name'],
+                'label'  => $b['label'],
+                'number' => $b['number'],
+                'ids'    => $b['ids'],
+                'titles' => $b['titles'],
+                // 月見出しを持つのはスライダー側の枠だけ
+                'month'  => $b['name'] === 'dbp/slide-article',
+            );
+        }
+        return $out;
+    }
+
+    /** 反映先の候補を探す */
+    public static function ajax_top_find() {
+        check_ajax_referer('fdr_ajax', 'nonce');
+        if (!current_user_can(self::CAP)) wp_send_json_error('権限がありません。', 403);
+
+        $found = FDR_TopSync::candidates();
+        if (!$found) {
+            wp_send_json_error('ランキング枠のブロック（dbp/article・dbp/slide-article）が見つかりませんでした。', 404);
+        }
+        wp_send_json_success($found);
+    }
+
+    /**
+     * 反映。dry=1 なら差分を返すだけで保存しない。
+     * 画面では必ず dry を先に通し、内容を見せてから本反映する。
+     */
+    public static function ajax_top_apply() {
+        check_ajax_referer('fdr_ajax', 'nonce');
+        if (!current_user_can(self::CAP)) wp_send_json_error('権限がありません。', 403);
+
+        $opt = FDR_Settings::get();
+        $post_id = (int)($_POST['post_id'] ?? $opt['top_post_id']);
+        $key     = sanitize_text_field(wp_unslash($_POST['key'] ?? ''));
+        $ids     = array_map('intval', (array)json_decode(wp_unslash($_POST['ids'] ?? '[]'), true));
+        $dry     = !empty($_POST['dry']);
+        $month   = sanitize_text_field(wp_unslash($_POST['month'] ?? ''));
+
+        if (!$post_id) wp_send_json_error('反映先が設定されていません。「設定」で選んでください。', 400);
+
+        // 反映先が変わったら覚えておく（毎回選び直さなくていいように）
+        if ($post_id !== (int)$opt['top_post_id']) {
+            FDR_Settings::save(array('top_post_id' => $post_id));
+        }
+
+        if (!$opt['top_month_label']) $month = '';
+
+        $res = FDR_TopSync::apply($post_id, $key, $ids, $dry, $month);
+        if (is_wp_error($res)) wp_send_json_error($res->get_error_message(), 400);
+
+        wp_send_json_success($res);
     }
 
     /* ===================================================================
@@ -384,7 +466,42 @@ class FDR_Admin {
                     </tr>
                     <tr>
                         <th scope="row">数えかた</th>
-                        <td><label><input type="checkbox" name="unique_email" value="1" <?php checked($opt['unique_email'], 1); ?>> 同じメールアドレスからの重複ダウンロードを1件として数える</label></td>
+                        <td><input type="hidden" name="unique_email" value="0"><label><input type="checkbox" name="unique_email" value="1" <?php checked($opt['unique_email'], 1); ?>> 同じメールアドレスからの重複ダウンロードを1件として数える</label></td>
+                    </tr>
+                </table>
+
+                <h2>TOPへの反映</h2>
+                <p class="description">TOPのランキング枠（re:Diver の記事一覧・スライダーブロック）に、選んだ並び順を書き戻します。枠が固定ページではなく「メインビジュアル」側にあることがあります。</p>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row"><label for="top_post_id">反映先の記事ID</label></th>
+                        <td>
+                            <input type="number" id="top_post_id" name="top_post_id" value="<?php echo esc_attr($opt['top_post_id']); ?>" class="small-text">
+                            <?php
+                            $tp = (int)$opt['top_post_id'];
+                            if ($tp && get_post($tp)) {
+                                $n = count(FDR_TopSync::scan($tp));
+                                printf(
+                                    '<p class="description fdr-hint %s">%s（%s）内に、書き換えられる枠が %d 個あります。</p>',
+                                    $n ? 'fdr-hint--ok' : 'fdr-hint--ng',
+                                    esc_html(get_the_title($tp)),
+                                    esc_html(get_post_type($tp)),
+                                    $n
+                                );
+                            } elseif ($tp) {
+                                echo '<p class="description fdr-hint fdr-hint--ng">そのIDの記事が見つかりません。</p>';
+                            } else {
+                                echo '<p class="description">0 のままなら反映機能は使いません。「ランキング作成」画面の「反映先を探す」で見つけられます。</p>';
+                            }
+                            ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">見出しの月</th>
+                        <td>
+                            <input type="hidden" name="top_month_label" value="0">
+                            <label><input type="checkbox" name="top_month_label" value="1" <?php checked($opt['top_month_label'], 1); ?>> 「2026年7月人気サービス資料」のような見出しの月も一緒に書き換える</label>
+                        </td>
                     </tr>
                 </table>
 

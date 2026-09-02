@@ -204,3 +204,16 @@ class FakeWpdb {
 
 $GLOBALS['wpdb'] = new FakeWpdb();
 $wpdb = $GLOBALS['wpdb'];
+
+/* ---------- TopSync のテストで使う分 ---------- */
+if (!class_exists('WP_Error')) {
+    class WP_Error {
+        public $code; public $message;
+        public function __construct($code = '', $message = '') { $this->code = $code; $this->message = $message; }
+        public function get_error_message() { return $this->message; }
+    }
+}
+function is_wp_error($t) { return $t instanceof WP_Error; }
+function get_term($id, $tax = 'category') { return $GLOBALS['__cats'][(int)$id] ?? null; }
+function get_post_type($id) { return isset($GLOBALS['__posts'][$id]) ? 'post' : false; }
+function get_post_status($id) { return isset($GLOBALS['__posts'][$id]) ? 'publish' : false; }

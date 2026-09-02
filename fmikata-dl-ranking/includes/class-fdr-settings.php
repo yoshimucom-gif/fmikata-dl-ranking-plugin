@@ -37,6 +37,10 @@ class FDR_Settings {
             'service_range'  => 'prev1m', // ①の既定期間
             'knowhow_range'  => 'prev1m', // ②の既定期間
 
+            // ── TOPへの反映
+            'top_post_id'     => 0,   // ランキング枠を置いている記事（TOPは firstview のことが多い）
+            'top_month_label' => 1,   // 見出しの「2026年7月」を一緒に書き換えるか
+
             // ── 除外
             'exclude_urls'   => "https://store.f-mikata.jp/cv/",
             'exclude_emails' => '',
@@ -78,7 +82,11 @@ class FDR_Settings {
                     $val = max(1, min(30, (int)$val));
                     break;
                 case 'unique_email':
+                case 'top_month_label':
                     $val = $val ? 1 : 0;
+                    break;
+                case 'top_post_id':
+                    $val = max(0, (int)$val);
                     break;
                 case 'service_range':
                 case 'knowhow_range':

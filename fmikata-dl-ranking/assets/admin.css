@@ -276,3 +276,86 @@
 
 .fdr-hint--ok { color: #007017; }
 .fdr-hint--ng { color: #b32d2e; }
+
+/* ---- TOPへの反映 ---- */
+
+.fdr-block--top {
+    border-color: #dba617;
+}
+
+.fdr-top-row {
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+
+.fdr-top-row__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.fdr-top-tag {
+    background: #fcf9e8;
+    border: 1px solid #dba617;
+    border-radius: 10px;
+    padding: 0 8px;
+    font-size: 11px;
+}
+
+.fdr-top-row__now {
+    font-size: 12px;
+    color: #50575e;
+}
+
+.fdr-top-row__now ol {
+    margin: 4px 0 8px 22px;
+}
+
+.fdr-top-row__act {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.fdr-top-msg {
+    color: #b32d2e;
+    font-size: 12px;
+}
+
+.fdr-diff {
+    margin-top: 10px;
+    border-top: 1px solid #dcdcde;
+    padding-top: 10px;
+}
+
+.fdr-diff__cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .fdr-diff__cols { grid-template-columns: 1fr; }
+}
+
+.fdr-diff h4 {
+    margin: 0 0 4px;
+}
+
+.fdr-diff ol {
+    margin: 0 0 0 22px;
+    font-size: 12px;
+}
+
+.fdr-diff ol.is-after li {
+    color: #007017;
+}
+
+.fdr-diff__month {
+    font-size: 12px;
+    color: #50575e;
+}

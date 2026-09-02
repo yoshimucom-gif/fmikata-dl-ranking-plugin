@@ -21,6 +21,7 @@ fmikata-dl-ranking-wp/
       class-fdr-settings.php   設定の既定値と読み書き
       class-fdr-aggregator.php 集計（ここがロジックの中心）
       class-fdr-admin.php      管理画面2枚とAjax
+      class-fdr-topsync.php    TOPのランキング枠への書き戻し
       plugin-updater.php       自動更新チェッカー
     assets/admin.js            並べ替えUIと出力の生成
     assets/admin.css
@@ -49,6 +50,28 @@ fmikata-dl-ranking-wp/
 - 出力は2種類。「一覧（名前とURL）」＝`1．資料名（URL）` の形と、「メール本文」＝丸番号と一言つき
 - ①②それぞれの分と、2つをまとめた分が出る。どれもボタン1つでコピーできる
 - 「選定内容を保存」を押すと、同じ期間で開き直したとき並びが戻る
+- 「TOPに反映」で、選んだ並びを store.f-mikata.jp のTOPのランキング枠に書き戻せる
+
+## TOPへの反映
+
+TOPのランキング枠は固定ページではなく **メインビジュアル（`firstview` ID 202111）** にある。
+枠は2つとも記事IDを直に持っているので、その並びを差し替えれば表示が変わる。
+
+| 枠 | ブロック | 属性 |
+|---|---|---|
+| 先月人気の資料TOP3 | `dbp/article` | `article.postId`（3件） |
+| ◯年◯月人気サービス資料 | `dbp/slide-article` | `article.postId`（10件） |
+
+どちらも対象カテゴリが `service` なので、入れるのは①サービスランキング。
+見出しの「2026年7月」も、集計期間の月に合わせて一緒に書き換える（設定で切れる）。
+
+**ページ全体を parse_blocks → serialize_blocks で作り直さない。** 手で組まれた他のブロックまで
+正規化されて事故になるため、該当ブロックのコメント内にある `postId` の値だけを差し替える。
+書き換え後にもう一度読み直して、意図した並びになっているか確かめてから保存する。
+保存は `wp_update_post`。RESTを通らないのでWAFやSiteGuardの影響を受けず、
+前の状態はリビジョンに残るので管理画面から戻せる。
+
+反映は必ず差分（いま → 反映後）を出してから、ボタンを押したときだけ実行する。
 
 ## ①が団子になったら期間を延ばす
 

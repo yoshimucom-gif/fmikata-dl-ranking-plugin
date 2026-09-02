@@ -56,6 +56,42 @@ html = """<!doctype html>
 <script type="application/json" id="fdr-data">__DATA__</script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script>
+// WordPress の admin-ajax の代わり。実際に保存はせず、返ってくる形だけ本物に合わせる
+(function ($) {
+  var titles = {};
+  try {
+    JSON.parse(document.getElementById('fdr-data').textContent).blocks.forEach(function (b) {
+      b.items.forEach(function (it) { titles[it.id] = it.title; });
+    });
+  } catch (e) {}
+  var realPost = $.post;
+  $.post = function (url, data) {
+    var d = $.Deferred();
+    setTimeout(function () {
+      if (data.action === 'fdr_top_find') {
+        d.resolve({ success: true, data: [
+          { id: 202110, type: 'page', title: 'TOP', blocks: 0 },
+          { id: 202111, type: 'firstview', title: 'メインビジュアル', blocks: 2 }
+        ] });
+      } else if (data.action === 'fdr_top_apply') {
+        var ids = JSON.parse(data.ids);
+        d.resolve({ success: true, data: {
+          before: [24177, 212307, 210190],
+          before_titles: ['SRE AI査定CLOUD', 'SRE AI査定CLOUD（収益還元法査定機能）', 'Starling BPO'],
+          after: ids,
+          after_titles: ids.map(function (i) { return titles[i] || ('ID ' + i); }),
+          months: data.month ? 1 : 0,
+          saved: !parseInt(data.dry, 10)
+        } });
+      } else {
+        d.resolve({ success: true, data: { saved: 1 } });
+      }
+    }, 60);
+    return d.promise();
+  };
+})(jQuery);
+</script>
 <script src="admin.js"></script>
 </body></html>
 """

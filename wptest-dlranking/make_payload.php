@@ -49,9 +49,31 @@ foreach ($spec as $group => $s) {
     );
 }
 
+// TOPへの反映パネル。実物のブロック記述から組み立てる
+require $plugin . '/includes/class-fdr-topsync.php';
+$top = array(
+    'postId'     => 202111,
+    'postTitle'  => 'メインビジュアル',
+    'editLink'   => '#',
+    'monthLabel' => 1,
+    'blocks'     => array(),
+);
+foreach (FDR_TopSync::scan_content(file_get_contents(__DIR__ . '/fixture_firstview.txt')) as $b) {
+    $top['blocks'][] = array(
+        'key'    => $b['key'],
+        'name'   => $b['name'],
+        'label'  => $b['label'],
+        'number' => $b['number'],
+        'ids'    => $b['ids'],
+        'titles' => $b['titles'],
+        'month'  => $b['name'] === 'dbp/slide-article',
+    );
+}
+
 $payload = array(
     'nonce'   => 'test',
     'ajaxurl' => '/noop',
+    'top'     => $top,
     'tplList' => $opt['item_tpl_list'],
     'tplText' => $opt['item_tpl_text'],
     'intro'   => $opt['mail_intro'],

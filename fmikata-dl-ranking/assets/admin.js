@@ -234,6 +234,158 @@
         $('.fdr-all__text').val(text.join('\n'));
     }
 
+    /* ----------------------------------------------------------------
+     * TOPへの反映
+     * ---------------------------------------------------------------- */
+
+    function topMarkup() {
+        var t = DATA.top || {};
+        var head = '<section class="fdr-block fdr-block--top">' +
+            '<h2>TOPに反映</h2>';
+
+        if (!t.postId) {
+            return head +
+                '<p class="fdr-summary">反映先がまだ決まっていません。ランキング枠を置いているページを探します。</p>' +
+                '<p><button type="button" class="button fdr-top-find">反映先を探す</button> ' +
+                '<span class="fdr-top-msg" aria-live="polite"></span></p>' +
+                '<div class="fdr-top-found"></div></section>';
+        }
+
+        var rows = (t.blocks || []).map(function (b, i) {
+            return '' +
+                '<div class="fdr-top-row" data-key="' + esc(b.key) + '" data-index="' + i + '">' +
+                    '<div class="fdr-top-row__head">' +
+                        '<strong>' + esc(b.label) + '</strong>' +
+                        '<code>' + esc(b.name) + '</code>' +
+                        (b.month ? '<span class="fdr-top-tag">見出しの月つき</span>' : '') +
+                    '</div>' +
+                    '<div class="fdr-top-row__now"><span>いま入っている ' + b.ids.length + ' 件：</span>' +
+                        '<ol>' + b.titles.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol></div>' +
+                    '<div class="fdr-top-row__act">' +
+                        DATA.blocks.map(function (blk, bi) {
+                            return '<button type="button" class="button fdr-top-preview" data-block="' + bi + '">' +
+                                esc(blk.label) + ' の上位' + b.number + '件を入れる</button>';
+                        }).join(' ') +
+                    '</div>' +
+                    '<div class="fdr-top-row__diff"></div>' +
+                '</div>';
+        }).join('');
+
+        return head +
+            '<p class="fdr-summary">反映先: <strong>' + esc(t.postTitle) + '</strong>（ID ' + t.postId + '）' +
+                (t.editLink ? ' <a href="' + esc(t.editLink) + '" target="_blank" rel="noopener">編集画面を開く</a>' : '') +
+                '。書き換えるのは枠のIDだけで、デザインには触れません。前の状態はリビジョンに残ります。</p>' +
+            (rows || '<p class="fdr-summary">この記事にランキング枠が見つかりませんでした。</p>') +
+            '<p><button type="button" class="button fdr-top-find">別の反映先を探す</button> ' +
+            '<span class="fdr-top-msg" aria-live="polite"></span></p>' +
+            '<div class="fdr-top-found"></div></section>';
+    }
+
+    function idsFor(blockIndex, count) {
+        return pickedOf(DATA.blocks[blockIndex]).slice(0, count).map(function (it) { return it.id; });
+    }
+
+    function topPost(params, done, fail) {
+        $.post(DATA.ajaxurl, $.extend({ nonce: DATA.nonce }, params))
+            .done(function (res) {
+                if (res && res.success) done(res.data);
+                else fail((res && res.data) || '失敗しました');
+            })
+            .fail(function (xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.data) || '通信に失敗しました';
+                fail(msg);
+            });
+    }
+
+    function diffMarkup(d, blockIndex, count, month) {
+        var before = d.before_titles.map(function (x, i) { return '<li>' + esc(x) + '</li>'; }).join('');
+        var after  = d.after_titles.map(function (x, i) { return '<li>' + esc(x) + '</li>'; }).join('');
+        return '' +
+            '<div class="fdr-diff">' +
+                '<div class="fdr-diff__cols">' +
+                    '<div><h4>いま</h4><ol>' + before + '</ol></div>' +
+                    '<div><h4>反映後</h4><ol class="is-after">' + after + '</ol></div>' +
+                '</div>' +
+                (month ? '<p class="fdr-diff__month">見出しの月を「' + esc(month) + '」に書き換えます（' + d.months + ' か所）。</p>' : '') +
+                '<p><button type="button" class="button button-primary fdr-top-apply" ' +
+                    'data-block="' + blockIndex + '" data-count="' + count + '" data-month="' + esc(month || '') + '">この内容でTOPに反映する</button> ' +
+                '<button type="button" class="button fdr-top-cancel">やめる</button></p>' +
+            '</div>';
+    }
+
+    function bindTop($app) {
+        $app.on('click', '.fdr-top-find', function () {
+            var $btn = $(this);
+            var $msg = $btn.siblings('.fdr-top-msg');
+            $btn.prop('disabled', true);
+            $msg.text('探しています…');
+            topPost({ action: 'fdr_top_find' }, function (list) {
+                $msg.text('');
+                $btn.prop('disabled', false);
+                $btn.closest('section').find('.fdr-top-found').html(
+                    '<table class="widefat striped"><thead><tr><th>ID</th><th>種別</th><th>タイトル</th><th>枠の数</th></tr></thead><tbody>' +
+                    list.map(function (r) {
+                        return '<tr><td>' + r.id + '</td><td>' + esc(r.type) + '</td><td>' + esc(r.title) + '</td><td>' + r.blocks + '</td></tr>';
+                    }).join('') +
+                    '</tbody></table><p class="description">使いたいIDを「設定」→「反映先の記事ID」に入れて保存してください。</p>'
+                );
+            }, function (msg) {
+                $msg.text(msg);
+                $btn.prop('disabled', false);
+            });
+        });
+
+        $app.on('click', '.fdr-top-preview', function () {
+            var $btn = $(this);
+            var $row = $btn.closest('.fdr-top-row');
+            var b = DATA.top.blocks[$row.data('index')];
+            var bi = parseInt($btn.data('block'), 10);
+            var ids = idsFor(bi, b.number);
+            if (!ids.length) { window.alert('先に掲載する記事を選んでください。'); return; }
+
+            var month = (b.month && DATA.top.monthLabel) ? DATA.blocks[bi].month : '';
+            $btn.prop('disabled', true);
+            topPost({
+                action: 'fdr_top_apply', dry: 1, key: b.key,
+                ids: JSON.stringify(ids), month: month
+            }, function (d) {
+                $btn.prop('disabled', false);
+                $row.find('.fdr-top-row__diff').html(diffMarkup(d, bi, b.number, month));
+            }, function (msg) {
+                $btn.prop('disabled', false);
+                $row.find('.fdr-top-row__diff').html('<div class="notice notice-error inline"><p>' + esc(msg) + '</p></div>');
+            });
+        });
+
+        $app.on('click', '.fdr-top-cancel', function () {
+            $(this).closest('.fdr-top-row__diff').empty();
+        });
+
+        $app.on('click', '.fdr-top-apply', function () {
+            var $btn = $(this);
+            var $row = $btn.closest('.fdr-top-row');
+            var b = DATA.top.blocks[$row.data('index')];
+            var bi = parseInt($btn.data('block'), 10);
+            var count = parseInt($btn.data('count'), 10);
+            var month = $btn.data('month') || '';
+
+            $btn.prop('disabled', true).text('反映しています…');
+            topPost({
+                action: 'fdr_top_apply', dry: 0, key: b.key,
+                ids: JSON.stringify(idsFor(bi, count)), month: month
+            }, function (d) {
+                b.ids = d.after;
+                b.titles = d.after_titles;
+                $row.find('.fdr-top-row__now ol').html(d.after_titles.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join(''));
+                $row.find('.fdr-top-row__now span').text('いま入っている ' + d.after.length + ' 件：');
+                $row.find('.fdr-top-row__diff').html('<div class="notice notice-success inline"><p>TOPに反映しました。</p></div>');
+            }, function (msg) {
+                $btn.prop('disabled', false).text('この内容でTOPに反映する');
+                $row.find('.fdr-top-row__diff').append('<div class="notice notice-error inline"><p>' + esc(msg) + '</p></div>');
+            });
+        });
+    }
+
     /* ---------------------------------------------------------------- */
 
     function copyFrom($ta, $btn) {
@@ -290,7 +442,8 @@
         if (!DATA || !DATA.blocks || !DATA.blocks.length) return;
 
         var $app = $('#fdr-app');
-        $app.html(DATA.blocks.map(blockMarkup).join('') + combinedMarkup());
+        $app.html(DATA.blocks.map(blockMarkup).join('') + combinedMarkup() + topMarkup());
+        bindTop($app);
 
         DATA.blocks.forEach(function (block, i) {
             render($('#fdr-block-' + i), block);
