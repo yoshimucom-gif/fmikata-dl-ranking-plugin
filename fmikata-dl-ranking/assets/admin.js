@@ -350,6 +350,12 @@
                 ids: JSON.stringify(ids), month: month
             }, function (d) {
                 $btn.prop('disabled', false);
+                if (d.nochange) {
+                    $row.find('.fdr-top-row__diff').html(
+                        '<div class="notice notice-info inline"><p>すでにこの並びになっています。書き換えるところがありません。</p></div>'
+                    );
+                    return;
+                }
                 $row.find('.fdr-top-row__diff').html(diffMarkup(d, bi, b.number, month));
             }, function (msg) {
                 $btn.prop('disabled', false);

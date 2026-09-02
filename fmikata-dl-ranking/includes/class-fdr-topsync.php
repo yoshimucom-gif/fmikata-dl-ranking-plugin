@@ -201,6 +201,20 @@ class FDR_TopSync {
             return new WP_Error('fdr_no_block', 'そのブロックが見つかりません。TOPを編集した直後は「読み直す」を押してください。');
         }
 
+        // すでに同じ並びなら、書き換えるものがない。これは失敗ではない
+        if ($target['ids'] === $ids) {
+            return array(
+                'before'        => $target['ids'],
+                'after'         => $ids,
+                'before_titles' => $target['titles'],
+                'after_titles'  => $target['titles'],
+                'months'        => 0,
+                'saved'         => false,
+                'nochange'      => true,
+                'changed'       => 0,
+            );
+        }
+
         $new = self::replace_ids($content, $target, $ids);
         if (is_wp_error($new)) return $new;
 
@@ -264,14 +278,30 @@ class FDR_TopSync {
             );
         }
 
-        if ($updated === null || $updated === $block) {
-            return new WP_Error('fdr_replace_failed', 'ブロックの書き換えに失敗しました。中止しました。');
+        if ($updated === null) {
+            return new WP_Error('fdr_replace_failed', 'ブロックの書き換えでエラーが出ました。中止しました。');
+        }
+        if ($updated === $block) {
+            return new WP_Error(
+                'fdr_replace_failed',
+                sprintf('ブロックの中身が変わりませんでした（入れようとした並び: %s）。中止しました。', $value)
+            );
         }
 
         // 差し替えた結果がJSONとして壊れていないか必ず確かめる
         $check = self::scan_content($updated);
-        if (!$check || $check[0]['ids'] !== $ids) {
-            return new WP_Error('fdr_replace_failed', '書き換え後の内容を検証できませんでした。中止しました。');
+        if (!$check) {
+            return new WP_Error('fdr_replace_failed', '書き換え後のブロックを読み直せませんでした。中止しました。');
+        }
+        if ($check[0]['ids'] !== $ids) {
+            return new WP_Error(
+                'fdr_replace_failed',
+                sprintf(
+                    '書き換え後の並びが一致しません（入れたかった: %s / 実際: %s）。中止しました。',
+                    implode(',', $ids),
+                    implode(',', $check[0]['ids'])
+                )
+            );
         }
 
         return substr($content, 0, $target['start']) . $updated . substr($content, $target['start'] + $target['len']);

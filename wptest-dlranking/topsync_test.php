@@ -115,6 +115,22 @@ check('はがれた u002d が出ていない', preg_match('/(?<!\\\\)u002d/', $s
 check('保存後のIDが意図どおり', FDR_TopSync::scan_content($saved)[0]['ids'], array(11, 22, 33));
 check('触っていない枠はそのまま', FDR_TopSync::scan_content($saved)[1]['ids'], $found[1]['ids']);
 
+/* ---- すでに同じ並びのときは失敗にしない（v1.1.2 で「書き換えに失敗」と出た） ---- */
+$GLOBALS['__posts'][998] = (object)array(
+    'ID' => 998, 'link' => 'https://example.com/y', 'post_title' => '同値検証',
+    'post_excerpt' => '', 'post_content' => $content, 'cats' => array(),
+);
+$same = FDR_TopSync::apply(998, 'dbp/article#0', array(24177, 212307, 210190), true);
+check('同じ並びを入れてもエラーにしない', is_wp_error($same) ? $same->get_error_message() : false, false);
+check('変更なしとして返す', !empty($same['nochange']), true);
+
+$same2 = FDR_TopSync::apply(998, 'dbp/article#0', array(24177, 212307, 210190), false);
+check('保存指定でも変更なしを返す', array(is_wp_error($same2), !empty($same2['nochange'])), array(false, true));
+check('本文は1文字も変わらない', get_post(998)->post_content, $content);
+
+$reordered = FDR_TopSync::apply(998, 'dbp/article#0', array(210190, 24177, 212307), true);
+check('順番だけ違う場合は変更ありとして扱う', empty($reordered['nochange']), true);
+
 echo "\n";
 echo $fail === 0 ? "すべて通りました。\n" : "失敗 {$fail} 件\n";
 exit($fail === 0 ? 0 : 1);
