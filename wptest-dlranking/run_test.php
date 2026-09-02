@@ -8,6 +8,7 @@ require __DIR__ . '/wp_stub.php';
 define('FDR_OPT', 'fmikata_dl_ranking_options');
 define('FDR_DRAFT', 'fmikata_dl_ranking_drafts');
 define('FDR_MAP_CACHE', 'fmikata_dl_ranking_urlmap');
+define('FDR_DBVER_OPT', 'fmikata_dl_ranking_dbver');
 
 $plugin = getenv('FDR_PLUGIN_DIR');
 require $plugin . '/includes/class-fdr-settings.php';
@@ -126,7 +127,34 @@ check('URL正規化: 空', FDR_Aggregator::norm_url(''), '');
 check('①②とも既定は先月', array(FDR_Settings::get('service_range'), FDR_Settings::get('knowhow_range')), array('prev1m', 'prev1m'));
 check('既定の期間キーが実在する', array_key_exists(FDR_Settings::get('service_range'), FDR_Aggregator::ranges()), true);
 
-/* ---- 13. フィールド検出 ---- */
+/* ---- 13. v1.0.0 から上げたときの移行 ---- */
+// v1.0.0 のサイトを再現する。①が「直近3ヶ月」で保存され、いまは無い設定も残っている状態
+$GLOBALS['__options'][FDR_OPT] = array_merge(FDR_Settings::defaults(), array(
+    'service_range' => '3m',
+    'accent_color'  => '#ff8c21',
+    'item_tpl_html' => '<strong>{no}{title}</strong>',
+    'candidates'    => 20,
+));
+unset($GLOBALS['__options'][FDR_DBVER_OPT]);
+
+check('移行前は保存値の「直近3ヶ月」が勝つ', FDR_Settings::get('service_range'), '3m');
+FDR_Settings::maybe_upgrade();
+check('移行すると①が先月になる', FDR_Settings::get('service_range'), 'prev1m');
+check('使わない設定は消える', array(
+    array_key_exists('accent_color', get_option(FDR_OPT)),
+    array_key_exists('item_tpl_html', get_option(FDR_OPT)),
+), array(false, false));
+check('自分で変えた設定は残る', FDR_Settings::get('candidates'), 20);
+check('版が記録される', (int)get_option(FDR_DBVER_OPT), FDR_Settings::DBVER);
+
+// 2回目以降は何もしない（移行後に手で3ヶ月へ戻したら、それを尊重する）
+FDR_Settings::save(array('service_range' => '3m'));
+FDR_Settings::maybe_upgrade();
+check('移行後に手で変えた期間は上書きされない', FDR_Settings::get('service_range'), '3m');
+
+$GLOBALS['__options'][FDR_OPT] = FDR_Settings::defaults();
+
+/* ---- 14. フィールド検出 ---- */
 check('Flamingoのフィールド候補が拾える', in_array('_field_service', FDR_Aggregator::detect_fields(), true), true);
 
 echo "\n";

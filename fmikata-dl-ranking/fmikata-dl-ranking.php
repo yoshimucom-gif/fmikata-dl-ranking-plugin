@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: 資料DLランキング（メルマガ生成）
- * Description: Flamingo に溜まった資料ダウンロードの申込データを、ストアのカテゴリ（不動産会社向けサービス一覧／不動産会社向けノウハウ資料）ごとに集計します。人気順の候補を15件出し、そこから掲載する10件を選んでドラッグで並べ替え、そのままメール配信に貼れる本文（HTML／テキスト）を生成します。
- * Version: 1.0.1
+ * Description: Flamingo に溜まった資料ダウンロードの申込データを、ストアのカテゴリ（不動産会社向けサービス一覧／不動産会社向けノウハウ資料）ごとに集計します。人気順の候補を15件出し、そこから掲載する10件を選んでドラッグで並べ替え、「1．資料名（URL）」の一覧と、一言コメント入りのメール本文をその場で生成します。
+ * Version: 1.0.2
  * Author: ミカタ株式会社
  * License: GPLv2 or later
  * Text Domain: fmikata-dl-ranking
@@ -16,7 +16,7 @@
 
 if (!defined('ABSPATH')) exit; // 直接アクセス禁止
 
-define('FDR_VER', '1.0.1');
+define('FDR_VER', '1.0.2');
 define('FDR_FILE', __FILE__);
 define('FDR_DIR', plugin_dir_path(__FILE__));
 define('FDR_URL', plugin_dir_url(__FILE__));
@@ -25,6 +25,8 @@ define('FDR_URL', plugin_dir_url(__FILE__));
 define('FDR_OPT', 'fmikata_dl_ranking_options');
 /** 選定内容（並び順・一言コメント）の保存先 */
 define('FDR_DRAFT', 'fmikata_dl_ranking_drafts');
+/** 設定の移行済みバージョン。既定値を変えても保存済みの設定が優先されるので、移行はここで管理する */
+define('FDR_DBVER_OPT', 'fmikata_dl_ranking_dbver');
 /** URL→カテゴリの対応表キャッシュ */
 define('FDR_MAP_CACHE', 'fmikata_dl_ranking_urlmap');
 
@@ -43,6 +45,7 @@ if (is_admin() && FDR_UPDATE_URL) {
     new FDR_Updater(__FILE__, FDR_UPDATE_URL);
 }
 
+add_action('plugins_loaded', array('FDR_Settings', 'maybe_upgrade'), 5);
 add_action('plugins_loaded', array('FDR_Admin', 'init'));
 
 /** 有効化時に既定値を書き込む（既存設定は壊さない） */

@@ -11,6 +11,12 @@ if (!defined('ABSPATH')) exit;
 
 class FDR_Settings {
 
+    /**
+     * 設定の世代。既定値を変えても、DBに保存済みの設定のほうが優先される。
+     * 「既定を直したのに画面が変わらない」を防ぐため、変えたい項目はここで一度だけ上書きする。
+     */
+    const DBVER = 2;
+
     /** 既定値。install() と get() の両方から参照する */
     public static function defaults() {
         return array(
@@ -108,6 +114,31 @@ class FDR_Settings {
         if (!is_array($opt)) {
             add_option(FDR_OPT, self::defaults(), '', false);
         }
+        self::maybe_upgrade();
+    }
+
+    /**
+     * 版が上がったときに一度だけ走る移行。
+     *
+     * v1.0.0 は①の既定が「直近3ヶ月」だった。その値がDBに残っていると、
+     * 既定を先月に変えても画面は3ヶ月のままになる。ここで一度だけ捨てる。
+     */
+    public static function maybe_upgrade() {
+        $from = (int)get_option(FDR_DBVER_OPT, 0);
+        if ($from >= self::DBVER) return;
+
+        $opt = get_option(FDR_OPT, null);
+        if (is_array($opt)) {
+            if ($from < 2) {
+                $opt['service_range'] = 'prev1m';
+                // 使わなくなった設定を残しておく理由がない
+                unset($opt['accent_color'], $opt['item_tpl_html']);
+            }
+            update_option(FDR_OPT, $opt, false);
+        }
+
+        update_option(FDR_DBVER_OPT, self::DBVER, false);
+        delete_transient(FDR_MAP_CACHE);
     }
 
     /** 改行区切りの設定値を配列にする */
