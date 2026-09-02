@@ -81,9 +81,39 @@ check('IDが空なら走査で空配列', FDR_TopSync::scan_content('<!-- wp:dbp
 check('対象外ブロックは拾わない', FDR_TopSync::scan_content('<!-- wp:paragraph {"a":1} --><p>x</p><!-- /wp:paragraph -->'), array());
 check('壊れたJSONで落ちない', FDR_TopSync::scan_content('<!-- wp:dbp/article {"article":{ -->'), array());
 
+/* ---- 印が本文の位置に依存していないか ---- */
+check('印は「何番目のブロックか」で付く', array($found[0]['key'], $found[1]['key']),
+    array('dbp/article#0', 'dbp/slide-article#0'));
+
+// 1つ目に書き込むと本文の長さが変わる。そのあとでも2つ目を同じ印で見つけられること
+$after_write = FDR_TopSync::scan_content($new);
+check('1つ目に書いたあとも2つ目の印が変わらない', $after_write[1]['key'], $found[1]['key']);
+check('印が変わらないので2つ目を書き換えられる',
+    FDR_TopSync::scan_content($ref->invoke(null, $new, $after_write[1], array(7, 8)))[1]['ids'],
+    array(7, 8));
+
 /* ---- 入れ子のかっこを正しく数えられるか ---- */
 $nested = '<!-- wp:dbp/article {"article":{"column":{"a":{"b":1}},"postId":"5,6","x":"}"}} /-->';
 check('入れ子と文字列中のかっこを誤らない', FDR_TopSync::scan_content($nested)[0]['ids'], array(5, 6));
+
+/* ---- 保存でバックスラッシュがはがれないか（v1.1.1 で起きた事故） ---- */
+// 実物の色指定と同じ、エスケープを含むブロックを足した本文で試す
+$escaped = $content . "\n<!-- wp:dbp/button {\"color\":\"var(\\u002d\\u002dwp\\u002d\\u002dpreset,rgb(1 2 3))\"} /-->";
+$GLOBALS['__posts'][999] = (object)array(
+    'ID' => 999, 'link' => 'https://example.com/x', 'post_title' => '検証用',
+    'post_excerpt' => '', 'post_content' => $escaped, 'cats' => array(),
+);
+$esc_before = substr_count($escaped, '\u002d');
+check('素材にエスケープが含まれている', $esc_before > 0, true);
+
+$res = FDR_TopSync::apply(999, 'dbp/article#0', array(11, 22, 33), false);
+check('保存でエラーにならない', is_wp_error($res) ? $res->get_error_message() : true, true);
+
+$saved = get_post(999)->post_content;
+check('保存後もエスケープの数が変わらない', substr_count($saved, '\u002d'), $esc_before);
+check('はがれた u002d が出ていない', preg_match('/(?<!\\\\)u002d/', $saved), 0);
+check('保存後のIDが意図どおり', FDR_TopSync::scan_content($saved)[0]['ids'], array(11, 22, 33));
+check('触っていない枠はそのまま', FDR_TopSync::scan_content($saved)[1]['ids'], $found[1]['ids']);
 
 echo "\n";
 echo $fail === 0 ? "すべて通りました。\n" : "失敗 {$fail} 件\n";

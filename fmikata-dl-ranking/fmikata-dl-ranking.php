@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 資料DLランキング（メルマガ生成）
  * Description: Flamingo に溜まった資料ダウンロードの申込データを、ストアのカテゴリ（不動産会社向けサービス一覧／不動産会社向けノウハウ資料）ごとに集計します。人気順の候補を15件出し、そこから掲載する10件を選んでドラッグで並べ替え、「1．資料名（URL）」の一覧と、一言コメント入りのメール本文をその場で生成します。
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: ミカタ株式会社
  * License: GPLv2 or later
  * Text Domain: fmikata-dl-ranking
@@ -16,7 +16,7 @@
 
 if (!defined('ABSPATH')) exit; // 直接アクセス禁止
 
-define('FDR_VER', '1.1.1');
+define('FDR_VER', '1.1.2');
 define('FDR_FILE', __FILE__);
 define('FDR_DIR', plugin_dir_path(__FILE__));
 define('FDR_URL', plugin_dir_url(__FILE__));

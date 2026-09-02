@@ -217,3 +217,17 @@ function is_wp_error($t) { return $t instanceof WP_Error; }
 function get_term($id, $tax = 'category') { return $GLOBALS['__cats'][(int)$id] ?? null; }
 function get_post_type($id) { return isset($GLOBALS['__posts'][$id]) ? 'post' : false; }
 function get_post_status($id) { return isset($GLOBALS['__posts'][$id]) ? 'publish' : false; }
+/**
+ * 本物と同じ往復にしておく。wp_update_post に素の本文を渡すと
+ * 内部の wp_unslash でバックスラッシュが1段はがれる、という事故を再現できるようにする。
+ */
+function wp_slash($v) { return is_string($v) ? addslashes($v) : $v; }
+function clean_post_cache($id) {}
+
+/** wp_update_post の再現。渡された本文は必ず wp_unslash を通る */
+function wp_update_post($arr, $wp_error = false) {
+    $id = (int)$arr['ID'];
+    if (!isset($GLOBALS['__posts'][$id])) return $wp_error ? new WP_Error('x', 'no post') : 0;
+    $GLOBALS['__posts'][$id]->post_content = wp_unslash($arr['post_content']);
+    return $id;
+}

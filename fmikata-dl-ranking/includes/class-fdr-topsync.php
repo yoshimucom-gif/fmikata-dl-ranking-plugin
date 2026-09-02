@@ -41,6 +41,7 @@ class FDR_TopSync {
     public static function scan_content($content) {
         $out = array();
         $names = self::target_blocks();
+        $seq = array();
 
         foreach (self::block_comments($content) as $i => $b) {
             if (!in_array($b['name'], $names, true)) continue;
@@ -51,8 +52,13 @@ class FDR_TopSync {
             $ids = self::read_ids($attrs);
             if ($ids === null) continue;
 
+            // 印は「何番目のそのブロックか」で付ける。本文の位置で付けると、
+            // 1つ目に書き込んだ時点で2つ目の位置がずれて見つからなくなる。
+            $n = isset($seq[$b['name']]) ? $seq[$b['name']] : 0;
+            $seq[$b['name']] = $n + 1;
+
             $out[] = array(
-                'key'    => $b['name'] . '@' . $b['start'],
+                'key'    => $b['name'] . '#' . $n,
                 'name'   => $b['name'],
                 'start'  => $b['start'],
                 'len'    => $b['len'],
@@ -216,8 +222,21 @@ class FDR_TopSync {
 
         if (trim($new) === '') return new WP_Error('fdr_empty', '書き換え後の本文が空になりました。中止しました。');
 
-        $updated = wp_update_post(array('ID' => $post_id, 'post_content' => $new), true);
+        // ★ wp_update_post は「スラッシュ付きの本文」を前提にしていて、内部で wp_unslash を通す。
+        //   素のまま渡すと本文中のバックスラッシュが1段はがれる。re:Diver のブロックは
+        //   色指定などを - のようなエスケープで持っているので、渡し方を誤ると壊れる。
+        $updated = wp_update_post(array('ID' => $post_id, 'post_content' => wp_slash($new)), true);
         if (is_wp_error($updated)) return $updated;
+
+        // 保存後に本当にその通り入ったか、DBから読み直して確かめる
+        clean_post_cache($post_id);
+        $saved = get_post($post_id);
+        if (!$saved || $saved->post_content !== $new) {
+            return new WP_Error(
+                'fdr_verify_failed',
+                '保存はしましたが、書き込んだ内容とDBの内容が一致しません。TOPの編集画面で確認してください。'
+            );
+        }
 
         $result['saved'] = true;
         return $result;
