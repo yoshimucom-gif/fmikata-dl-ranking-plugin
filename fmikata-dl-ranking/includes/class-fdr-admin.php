@@ -476,7 +476,7 @@ class FDR_Admin {
                     <tr>
                         <th scope="row"><label for="top_post_id">反映先の記事ID</label></th>
                         <td>
-                            <input type="number" id="top_post_id" name="top_post_id" value="<?php echo esc_attr($opt['top_post_id']); ?>" class="small-text">
+                            <input type="number" id="top_post_id" name="top_post_id" value="<?php echo esc_attr($opt['top_post_id']); ?>" class="fdr-id-field">
                             <?php
                             $tp = (int)$opt['top_post_id'];
                             if ($tp && get_post($tp)) {

@@ -1,6 +1,6 @@
 {
   "name": "資料DLランキング（メルマガ生成）",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "download_url": "https://raw.githubusercontent.com/yoshimucom-gif/fmikata-dl-ranking-plugin/main/fmikata-dl-ranking.zip",
   "requires": "5.8",
   "tested": "6.7",
@@ -8,6 +8,6 @@
   "author": "ミカタ株式会社",
   "homepage": "https://github.com/yoshimucom-gif/fmikata-dl-ranking-plugin",
   "sections": {
-    "changelog": "1.1.0\n・TOPのランキング枠に、選んだ並び順をそのまま反映できるようにしました\n・反映前に「いま → 反映後」の差分を資料名つきで確認できます\n・見出しの「◯年◯月」も一緒に書き換えます（設定で切れます）\n・書き換えるのは枠の記事IDだけで、デザインには触れません。前の状態はリビジョンに残ります"
+    "changelog": "1.1.1\n・設定画面の記事IDが桁落ちして見えていたのを修正（保存値は正しく入っていました）\n・反映先が正しいときの案内が緑色にならなかったのを修正"
   }
 }

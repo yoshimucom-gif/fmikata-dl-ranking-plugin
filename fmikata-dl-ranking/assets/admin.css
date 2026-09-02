@@ -274,8 +274,12 @@
     max-width: 900px;
 }
 
-.fdr-hint--ok { color: #007017; }
-.fdr-hint--ng { color: #b32d2e; }
+/* WordPress の p.description（詳細度 0,1,1）に負けるので、こちらも同じ強さ以上で書く */
+.fdr-wrap p.fdr-hint--ok { color: #007017; font-weight: 600; }
+.fdr-wrap p.fdr-hint--ng { color: #b32d2e; font-weight: 600; }
+
+/* 記事IDは6桁入る。WP既定の small-text は50pxしかなく数字が切れて見える */
+.fdr-wrap input.fdr-id-field { width: 8em; }
 
 /* ---- TOPへの反映 ---- */
 
