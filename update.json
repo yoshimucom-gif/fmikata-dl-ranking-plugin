@@ -1,6 +1,6 @@
 {
   "name": "資料DLランキング（メルマガ生成）",
-  "version": "1.1.4",
+  "version": "1.1.3",
   "download_url": "https://raw.githubusercontent.com/yoshimucom-gif/fmikata-dl-ranking-plugin/main/fmikata-dl-ranking.zip",
   "requires": "5.8",
   "tested": "6.7",
@@ -8,6 +8,6 @@
   "author": "ミカタ株式会社",
   "homepage": "https://github.com/yoshimucom-gif/fmikata-dl-ranking-plugin",
   "sections": {
-    "changelog": "1.1.4\n・本文の外部リンクの矢印が□（豆腐）になっていたのを修正。テーマのアイコンフォントに頼らず↗で出します"
+    "changelog": "1.1.3\n・すでに同じ並びが入っているときに「書き換えに失敗しました」と出ていたのを修正。「すでにこの並びです」と表示します\n・書き換えに失敗したときのメッセージに、入れようとした並びを出すようにしました"
   }
 }
